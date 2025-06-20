@@ -1,16 +1,16 @@
-from django.urls import path
+from django.contrib import admin
+from django.urls import path, include
+from django.views.generic import TemplateView
 from django.conf.urls.static import static
 from django.conf import settings
-from . import views
-
-app_name = 'djangoapp'
 
 urlpatterns = [
-    # path for login
-    path('login', views.login_user, name='login'),
+    path('admin/', admin.site.urls),
 
-    # path for about page
-    path('about', views.about, name='about'),
+    # Inclure les routes de l'app principale
+    path('', include('djangoapp.urls')),
 
-    # ici tu peux ajouter les autres routes nécessaires plus tard
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Pages HTML statiques servies directement (optionnel si déjà géré dans djangoapp.views)
+    path('', TemplateView.as_view(template_name="Home.html"), name='home'),
+    path('contact/', TemplateView.as_view(template_name="Contact.html")),
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
