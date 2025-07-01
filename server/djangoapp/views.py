@@ -16,6 +16,8 @@ from django.views.decorators.csrf import csrf_exempt
 from .populate import initiate
 # ➕ Ajout ici comme demandé :
 from .models import CarMake, CarModel
+from .restapis import get_request, analyze_review_sentiments, post_review
+
 
 
 # Get an instance of a logger
@@ -105,10 +107,44 @@ def get_cars(request):
 # a list of dealerships
 # def get_dealerships(request):
 # ...
+# ➕ Ajout de la vue get_dealerships demandée :
+from .restapis import get_request  # Assure-toi que restapis.py contient bien la fonction get_request
+
+@csrf_exempt
+def get_dealerships(request, state="All"):
+    if state == "All":
+        endpoint = "/fetchDealers"
+    else:
+        endpoint = "/fetchDealers/" + state
+    dealerships = get_request(endpoint)
+    return JsonResponse({"status": 200, "dealers": dealerships})
+
+# ➕ Ajout de la vue get_dealer_details demandée :
+@csrf_exempt
+def get_dealer_details(request, dealer_id):
+    if dealer_id:
+        endpoint = "/fetchDealer/" + str(dealer_id)
+        dealership = get_request(endpoint)
+        return JsonResponse({"status": 200, "dealer": dealership})
+    else:
+        return JsonResponse({"status": 400, "message": "Bad Request"})
+
 
 # Create a `get_dealer_reviews` view to render the reviews of a dealer
 # def get_dealer_reviews(request,dealer_id):
 # ...
+@csrf_exempt
+def get_dealer_reviews(request, dealer_id):
+    if dealer_id:
+        endpoint = "/fetchReviews/dealer/" + str(dealer_id)
+        reviews = get_request(endpoint)
+        for review_detail in reviews:
+            response = analyze_review_sentiments(review_detail['review'])
+            # print(response)  # Tu peux garder ou commenter cette ligne pour debug
+            review_detail['sentiment'] = response.get('sentiment', 'neutral')  # Valeur par défaut 'neutral' si absent
+        return JsonResponse({"status": 200, "reviews": reviews})
+    else:
+        return JsonResponse({"status": 400, "message": "Bad Request"})
 
 # Create a `get_dealer_details` view to render the dealer details
 # def get_dealer_details(request, dealer_id):
@@ -117,3 +153,16 @@ def get_cars(request):
 # Create a `add_review` view to submit a review
 # def add_review(request):
 # ...
+@csrf_exempt
+def add_review(request):
+    if not request.user.is_anonymous:
+        data = json.loads(request.body)
+        try:
+            response = post_review(data)
+            print(response)  # Pour debug, tu peux enlever plus tard
+            return JsonResponse({"status": 200, "message": "Review posted successfully"})
+        except Exception as e:
+            print(f"Error posting review: {e}")
+            return JsonResponse({"status": 401, "message": "Error in posting review"})
+    else:
+        return JsonResponse({"status": 403, "message": "Unauthorized"})
