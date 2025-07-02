@@ -1,6 +1,9 @@
 from flask import Flask
 from nltk.sentiment import SentimentIntensityAnalyzer
 import json
+import nltk
+nltk.download('vader_lexicon')
+
 app = Flask("Sentiment Analyzer")
 
 sia = SentimentIntensityAnalyzer()

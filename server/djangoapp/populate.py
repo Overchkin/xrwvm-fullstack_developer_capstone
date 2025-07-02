@@ -1,6 +1,13 @@
 from .models import CarMake, CarModel
 
 def initiate():
+<<<<<<< HEAD
+=======
+    print("Populate not implemented. Add data manually")
+from .models import CarMake, CarModel
+
+def initiate():
+>>>>>>> c20e3b6 (Créer des services proxy Django pour les API backend)
     car_make_data = [
         {"name": "NISSAN", "description": "Great cars. Japanese technology"},
         {"name": "Mercedes", "description": "Great cars. German technology"},
